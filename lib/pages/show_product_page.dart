@@ -17,6 +17,7 @@ class ShowProductPage extends StatefulWidget {
 }
 
 class _ShowProductPageState extends State<ShowProductPage> {
+  List<ProductModel>? products;
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   @override
@@ -26,6 +27,19 @@ class _ShowProductPageState extends State<ShowProductPage> {
   }
 
   Future<String?> getList() async {
+    products = [];
+    var url =
+        Uri.parse('https://laravel-backend-cs115.herokuapp.com/api/products');
+
+    var reponse = await http.get(url, headers: {
+      HttpHeaders.contentTypeHeader: 'application/json',
+    });
+
+    var jsonString = jsonDecode(reponse.body);
+    products = jsonString['payload']
+        .map<ProductModel>((json) => ProductModel.fromJson(json))
+        .toList();
+
     return "";
   }
 
