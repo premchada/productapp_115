@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:productapp/models/product_model.dart';
 import 'package:productapp/pages/add_product_page.dart';
+import 'package:productapp/pages/edit_product_page.dart';
 import 'package:productapp/pages/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,20 +28,23 @@ class _ShowProductPageState extends State<ShowProductPage> {
   }
 
   Future<String?> getList() async {
+    // get token first. from sharedPreference
+    final SharedPreferences prefs = await _prefs;
+
     products = [];
     var url =
         Uri.parse('https://laravel-backend-cs115.herokuapp.com/api/products');
 
-    var reponse = await http.get(url, headers: {
+    var response = await http.get(url, headers: {
       HttpHeaders.contentTypeHeader: 'application/json',
+      HttpHeaders.authorizationHeader: 'Bearer ${prefs.getString('token')}',
     });
 
-    var jsonString = jsonDecode(reponse.body);
-    products = jsonString['payload']
-        .map<ProductModel>((json) => ProductModel.fromJson(json))
-        .toList();
-
-    return "";
+    return response.body;
+    // var jsonString = jsonDecode(response.body);
+    // products = jsonString['payload']
+    //     .map<ProductModel>((json) => ProductModel.fromJson(json))
+    //     .toList();
   }
 
   @override
@@ -95,6 +99,7 @@ class _ShowProductPageState extends State<ShowProductPage> {
           List<ProductModel>? products = jsonString['payload']
               .map<ProductModel>((json) => ProductModel.fromJson(json))
               .toList();
+         
           // Convert snapshot.data to jsonString
 
           // Create List of Product by using Product Model
@@ -107,6 +112,11 @@ class _ShowProductPageState extends State<ShowProductPage> {
                   child: ListTile(
                     onTap: () {
                       // Navigate to Edit Product
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProductPage(id: item.id),
+                          )).then((value) => setState(() {}));
                     },
                     title: Text('${item.productName}'),
                     subtitle: Text('${item.price}'),
@@ -187,28 +197,32 @@ class _ShowProductPageState extends State<ShowProductPage> {
   Future<void> deleteProduct(int? id) async {
     // Call SharedPreference to get Token
     SharedPreferences prefs = await _prefs;
+
+// Define Laravel API for Deleting Produce
     var url = Uri.parse(
         'https://laravel-backend-cs115.herokuapp.com/api/products/$id');
+
+    // Request deleting product
     var response = await http.delete(url, headers: {
-      HttpHeaders.authorizationHeader: 'Bearer ${prefs.getString('token')}',
+      HttpHeaders.authorizationHeader:
+          'Bearer ${prefs.getString('token')}', //แนบ token
     });
 
+// Check Status Code, then pop to the previous
     if (response.statusCode == 200) {
       Navigator.pop(context);
     }
-    // Define Laravel API for Deleting Produce
-
-    // Request deleting product
-
-    // Check Status Code, then pop to the previous
   }
 
   Future<void> logout() async {
     // Call SharedPreference to get Token
     final SharedPreferences prefs = await _prefs;
+
+    // Define Laravel API for Logout
     var url =
         Uri.parse('https://laravel-backend-cs115.herokuapp.com/api/logout');
 
+    // Request for logging out
     var response = await http.post(
       url,
       headers: {
@@ -217,6 +231,7 @@ class _ShowProductPageState extends State<ShowProductPage> {
       },
     );
 
+    // Check Status Code, remove sharedpreference, then pop to the previous
     if (response.statusCode == 200) {
       prefs.remove('user');
       prefs.remove('token');
@@ -228,10 +243,5 @@ class _ShowProductPageState extends State<ShowProductPage> {
         ),
       );
     }
-    // Define Laravel API for Logout
-
-    // Request for logging out
-
-    // Check Status Code, remove sharedpreference, then pop to the previous
   }
 }

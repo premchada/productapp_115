@@ -109,7 +109,7 @@ class _EditProductPageState extends State<EditProductPage> {
 
             // Find index of requsted product type
             _name.text = payload['product_name'];
-            _price.text = payload['price'];
+            _price.text = payload['price'].toString();
             _selectedType = dropdownMenuItems[ind].value!;
 
             // Initialize value of each textfield and dropdown
@@ -210,9 +210,9 @@ class _EditProductPageState extends State<EditProductPage> {
         borderRadius: const BorderRadius.all(Radius.circular(16)),
         value: _selectedType,
         items: dropdownMenuItems,
-        onChanged: (value) {
+        onChanged: (ListProductType? value) {
           setState(() {
-            _selectedType = value as ListProductType;
+            _selectedType = value!;
           });
         },
       ),
@@ -248,20 +248,17 @@ class _EditProductPageState extends State<EditProductPage> {
         "price": _price.text,
         "product_type": _selectedType.value,
       });
+      // Define Laravel API for Retrieving Product
       var url = Uri.parse(
           'https://laravel-backend-cs115.herokuapp.com/api/products/${widget.id}');
       var response = await http.put(url, body: data, headers: {
         HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.authorizationHeader: 'Bearer ${prefs.getString('token')}',
       });
-
+      // Check Status Code, then pop to the previous
       if (response.statusCode == 200) {
-      Navigator.pop(context);
+        Navigator.pop(context);
+      }
     }
-    }
-    // Define Laravel API for Retrieving Product
-
-    // Check Status Code, then pop to the previous
-    
   }
 }

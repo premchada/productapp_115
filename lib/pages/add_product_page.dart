@@ -11,6 +11,7 @@ class AddProductPage extends StatefulWidget {
 
   @override
   _AddProductPageState createState() => _AddProductPageState();
+  
 }
 
 class _AddProductPageState extends State<AddProductPage> {
